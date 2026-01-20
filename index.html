@@ -1,0 +1,1419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#4CAF50">
+
+    <title>Amor Barcode System</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            font-size: 16px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            background: white;
+            padding: 25px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .logo {
+            width: 120px;
+            height: auto;
+            margin: 0 auto 10px;
+            display: block;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2));
+        }
+
+        h2 {
+            font-size: 1.6em;
+            text-align: center;
+            color: #1a1a2e;
+            margin-bottom: 15px;
+            font-weight: 700;
+        }
+
+        .file-section {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 15px;
+            border-radius: 12px;
+            border: 2px dashed #dee2e6;
+        }
+
+        .file-section p {
+            color: #666;
+            font-size: 0.85em;
+            margin-top: 8px;
+        }
+
+        #fileInput {
+            font-size: 14px;
+            width: 100%;
+        }
+
+        .debug-info {
+            font-size: 12px;
+            color: #4CAF50;
+            margin-top: 8px;
+            font-weight: 500;
+        }
+
+        .settings-section {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 15px;
+            background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+            border-radius: 12px;
+        }
+
+        .settings-section label {
+            font-weight: 600;
+            color: #2e7d32;
+            font-size: 0.9em;
+            white-space: nowrap;
+        }
+
+        #matchRate {
+            flex: 1;
+            height: 8px;
+            border-radius: 4px;
+            -webkit-appearance: none;
+            background: #a5d6a7;
+        }
+
+        #matchRate::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: #4CAF50;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+        }
+
+        #matchRateValue {
+            font-weight: 700;
+            color: #2e7d32;
+            min-width: 45px;
+        }
+
+        .input-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        input[type="text"], input[type="number"] {
+            padding: 14px 16px;
+            font-size: 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            transition: all 0.3s;
+            width: 100%;
+        }
+
+        input[type="text"]:focus, input[type="number"]:focus {
+            outline: none;
+            border-color: #4CAF50;
+            box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.2);
+        }
+
+        .button-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        button {
+            padding: 14px 20px;
+            font-size: 15px;
+            font-weight: 600;
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .clear-button {
+            background: linear-gradient(135deg, #FFD700 0%, #FFC107 100%) !important;
+            color: #333 !important;
+            box-shadow: 0 4px 15px rgba(255, 193, 7, 0.3) !important;
+        }
+
+        .save-button {
+            background: linear-gradient(135deg, #FF6B6B 0%, #ee5a5a 100%) !important;
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3) !important;
+        }
+
+        .load-button {
+            background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%) !important;
+            box-shadow: 0 4px 15px rgba(33, 150, 243, 0.3) !important;
+        }
+
+        .google-sheet-btn {
+            background: linear-gradient(135deg, #0F9D58 0%, #0B8043 100%) !important;
+            box-shadow: 0 4px 15px rgba(15, 157, 88, 0.3) !important;
+            padding: 12px 20px !important;
+            font-size: 14px !important;
+        }
+
+        .google-sheet-btn:hover {
+            box-shadow: 0 6px 20px rgba(15, 157, 88, 0.4) !important;
+        }
+
+        #searchResults {
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            margin-top: 10px;
+            max-height: 200px;
+            overflow-y: auto;
+            display: none;
+            background: white;
+        }
+
+        .search-result-item {
+            padding: 14px 16px;
+            border-bottom: 1px solid #f0f0f0;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .search-result-item:hover {
+            background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%);
+        }
+
+        .search-result-item:active {
+            background: #c8e6c9;
+        }
+
+        .highlight {
+            background-color: #FFEB3B;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+
+        #results {
+            border: 2px solid #e0e0e0;
+            padding: 12px;
+            min-height: 50px;
+            max-height: 150px;
+            overflow-y: auto;
+            border-radius: 12px;
+            background: #fafafa;
+        }
+
+        #totalResults {
+            border: 2px solid #4CAF50;
+            padding: 15px;
+            min-height: 200px;
+            max-height: 350px;
+            overflow-y: auto;
+            border-radius: 12px;
+            background: white;
+            font-family: 'Consolas', 'Monaco', monospace;
+        }
+
+        .header-row {
+            font-weight: 700;
+            border-bottom: 3px solid #4CAF50;
+            margin-bottom: 12px;
+            padding-bottom: 10px;
+            color: #2e7d32;
+            font-size: 1.1em;
+        }
+
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 10px;
+            border-bottom: 1px solid #f0f0f0;
+            font-family: 'Consolas', 'Monaco', monospace;
+            transition: background 0.2s;
+        }
+
+        .result-item:hover {
+            background: #f8f9fa;
+        }
+
+        .result-item span {
+            flex-grow: 1;
+            margin-right: 10px;
+            font-size: 14px;
+        }
+
+        .result-item button {
+            padding: 6px 12px;
+            font-size: 12px;
+            margin-left: 6px;
+            min-height: auto;
+            box-shadow: none;
+        }
+
+        .result-item button.edit-btn {
+            background: linear-gradient(135deg, #64B5F6 0%, #42A5F5 100%) !important;
+        }
+
+        .result-item button.delete-btn {
+            background: linear-gradient(135deg, #ef9a9a 0%, #e57373 100%) !important;
+        }
+
+        h3 {
+            margin-top: 0;
+            color: #4CAF50;
+            font-size: 1.4em;
+        }
+
+        .qty-input {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 25px;
+            border: none;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            display: none;
+            z-index: 1000;
+            width: 90%;
+            max-width: 320px;
+        }
+
+        .qty-input.show {
+            display: block;
+            animation: popIn 0.3s ease;
+        }
+
+        @keyframes popIn {
+            0% { transform: translate(-50%, -50%) scale(0.8); opacity: 0; }
+            100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+        }
+
+        .qty-input input[type="number"] {
+            width: 100%;
+            padding: 15px;
+            margin: 15px 0;
+            font-size: 20px;
+            text-align: center;
+            border: 2px solid #4CAF50;
+            border-radius: 10px;
+        }
+
+        .qty-input button {
+            width: 100%;
+            margin: 5px 0;
+        }
+
+        .warning {
+            color: #d32f2f;
+            font-weight: bold;
+            font-size: 14px;
+            padding: 12px;
+            background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
+            border-radius: 10px;
+            border-left: 4px solid #d32f2f;
+        }
+
+        .warning-icon::before {
+            content: "⚠️ ";
+        }
+
+        .fade-out {
+            animation: fadeOut 2s forwards;
+        }
+
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+
+        .action-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        /* 모바일 반응형 */
+        @media screen and (max-width: 768px) {
+            body {
+                padding: 10px;
+                min-height: 100vh;
+            }
+
+            .container {
+                padding: 18px;
+                border-radius: 16px;
+                gap: 12px;
+            }
+
+            .logo {
+                width: 80px;
+            }
+
+            h2 {
+                font-size: 1.3em;
+                margin-bottom: 10px;
+            }
+
+            .file-section {
+                padding: 12px;
+            }
+
+            .settings-section {
+                flex-wrap: wrap;
+                padding: 12px;
+            }
+
+            .settings-section label {
+                width: 100%;
+                margin-bottom: 5px;
+            }
+
+            #matchRate {
+                flex: 1;
+            }
+
+            .input-section {
+                grid-template-columns: 1fr;
+            }
+
+            .button-row {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            button {
+                padding: 14px 16px;
+                font-size: 14px;
+            }
+
+            input[type="text"],
+            input[type="number"] {
+                padding: 14px;
+                font-size: 16px;
+            }
+
+            #results {
+                max-height: 120px;
+            }
+
+            #totalResults {
+                max-height: 280px;
+                min-height: 150px;
+            }
+
+            .result-item {
+                padding: 10px 8px;
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+
+            .result-item span {
+                width: 100%;
+                margin-right: 0;
+                margin-bottom: 5px;
+            }
+
+            .result-item button {
+                flex: 1;
+                padding: 10px;
+            }
+
+            .search-result-item {
+                padding: 14px;
+            }
+
+            .qty-input {
+                width: 92%;
+                padding: 20px;
+            }
+
+            .action-buttons {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            /* 스크롤바 스타일 */
+            ::-webkit-scrollbar {
+                width: 6px;
+            }
+
+            ::-webkit-scrollbar-thumb {
+                background: rgba(76, 175, 80, 0.5);
+                border-radius: 3px;
+            }
+        }
+
+        /* 아주 작은 화면 */
+        @media screen and (max-width: 380px) {
+            .container {
+                padding: 14px;
+            }
+
+            h2 {
+                font-size: 1.1em;
+            }
+
+            .button-row {
+                grid-template-columns: 1fr;
+            }
+
+            .action-buttons {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* 다크 모드 */
+        @media (prefers-color-scheme: dark) {
+            body {
+                background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            }
+
+            .container {
+                background: #1e1e1e;
+                color: #ffffff;
+            }
+
+            h2 {
+                color: #ffffff;
+            }
+
+            .file-section {
+                background: linear-gradient(135deg, #2d2d2d 0%, #252525 100%);
+                border-color: #444;
+            }
+
+            .file-section p {
+                color: #aaa;
+            }
+
+            input[type="text"],
+            input[type="number"] {
+                background: #2d2d2d;
+                color: #ffffff;
+                border-color: #444;
+            }
+
+            input[type="text"]:focus,
+            input[type="number"]:focus {
+                border-color: #4CAF50;
+            }
+
+            .settings-section {
+                background: linear-gradient(135deg, #1b3a1f 0%, #1e3d22 100%);
+            }
+
+            #results {
+                background: #2d2d2d;
+                border-color: #444;
+            }
+
+            #totalResults {
+                background: #252525;
+                border-color: #4CAF50;
+            }
+
+            .result-item:hover {
+                background: #333;
+            }
+
+            #searchResults {
+                background: #2d2d2d;
+                border-color: #444;
+            }
+
+            .search-result-item:hover {
+                background: #333;
+            }
+
+            .qty-input {
+                background: #2d2d2d;
+            }
+
+            h3 {
+                color: #81c784;
+            }
+        }
+    </style>
+</head>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./service-worker.js')
+      .then(reg => console.log('Service Worker registered', reg))
+      .catch(err => console.error('Service Worker registration failed', err));
+  });
+}
+</script>
+
+<body>
+    <div class="container">
+        <h2>Amor Barcode System</h2>
+        
+        <div class="file-section">
+            <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 10px;">
+                <button class="google-sheet-btn" onclick="loadFromGoogleSheet()" style="flex: 1; min-width: 150px;">
+                    📊 Google Sheet 불러오기
+                </button>
+            </div>
+            <div style="display: flex; align-items: center; gap: 10px; margin: 10px 0;">
+                <div style="flex: 1; height: 1px; background: #ccc;"></div>
+                <span style="color: #999; font-size: 12px;">또는</span>
+                <div style="flex: 1; height: 1px; background: #ccc;"></div>
+            </div>
+            <input type="file" id="fileInput" accept=".xlsx, .xls, .csv" />
+            <p>📁 Excel 또는 CSV 파일을 선택하세요</p>
+            <div id="dataInfo" class="debug-info"></div>
+        </div>
+
+        <div class="settings-section">
+            <label for="matchRate">🎯 Match Rate:</label>
+            <input type="range" id="matchRate" min="70" max="100" value="100" step="1">
+            <span id="matchRateValue">100%</span>
+        </div>
+
+        <div class="input-section">
+            <input type="text" id="barcodeInput" placeholder="🔍 바코드 스캔/입력" />
+            <input type="text" id="textSearchInput" placeholder="🔎 텍스트 검색" />
+        </div>
+        
+        <div class="button-row">
+            <button onclick="searchBarcode()">🔍 Search</button>
+            <button class="clear-button" onclick="clearResults()">🗑️ Clear</button>
+        </div>
+        
+        <div id="searchResults"></div>
+        <div id="results"></div>
+        <div id="totalResults">
+            <div class="header-row">📋 ITEM - QTY</div>
+        </div>
+        
+        <div class="action-buttons">
+            <button class="load-button" onclick="loadTextFile()">📂 Load</button>
+            <button class="save-button" onclick="showSaveDialog()">💾 Save</button>
+        </div>
+
+    <div id="qtyInput" class="qty-input">
+        <h3>Enter Quantity</h3>
+        <input type="number" id="qtyValue" min="1" placeholder="Enter quantity">
+        <button onclick="confirmQty()">Confirm</button>
+    </div>
+
+    <div id="saveDialog" class="qty-input">
+        <h3>Save Results</h3>
+        <input type="text" id="fileName" placeholder="Enter file name">
+        <button onclick="saveResults()">Save</button>
+        <button onclick="document.getElementById('saveDialog').classList.remove('show')">Cancel</button>
+    </div>
+
+    <input type="file" id="textFileInput" accept=".txt" style="display: none;">
+    <script>
+        let excelData = null;
+        let currentItem = null;
+        let searchTimeout = null;
+        
+        // Google Sheet ID (AMOR DATA-FIXED)
+        const GOOGLE_SHEET_ID = '1H1dx7ClreBrP9Mq0kHIvmgLwewU1Wgh2Z0WL8RKV7JE';
+        const GOOGLE_SHEET_NAME = 'AMOR DATA';
+        
+        // Initialize scannedBarcodes Set if it doesn't exist
+        if (typeof window.scannedBarcodes === 'undefined') {
+            window.scannedBarcodes = new Set();
+        }
+
+        // Google Sheet에서 데이터 불러오기 (JSONP 방식)
+        function loadFromGoogleSheet() {
+            const dataInfo = document.getElementById('dataInfo');
+            dataInfo.textContent = '📊 Google Sheet에서 데이터 로딩 중...';
+            dataInfo.style.color = '#0F9D58';
+            
+            // 고유한 콜백 함수명 생성
+            const callbackName = 'googleSheetCallback_' + Date.now();
+            
+            // 콜백 함수 등록
+            window[callbackName] = function(response) {
+                try {
+                    if (response.status === 'error') {
+                        throw new Error(response.errors[0].message);
+                    }
+                    
+                    const table = response.table;
+                    const cols = table.cols;
+                    const rows = table.rows;
+                    
+                    // 헤더 추출
+                    const headers = cols.map(col => col.label || col.id);
+                    
+                    // 데이터 변환
+                    excelData = [];
+                    
+                    rows.forEach(row => {
+                        if (!row.c) return;
+                        
+                        const obj = {};
+                        row.c.forEach((cell, index) => {
+                            if (cell && cell.v !== null && cell.v !== undefined) {
+                                obj[headers[index]] = String(cell.v).trim();
+                            }
+                        });
+                        
+                        // ITEM 또는 BARCODE가 있는 행만 추가
+                        if (obj.ITEM || obj.Item || obj.item || obj.BARCODE || obj.Barcode || obj.barcode) {
+                            excelData.push(obj);
+                        }
+                    });
+                    
+                    dataInfo.textContent = `✅ Google Sheet에서 ${excelData.length}개 항목 로드 완료!`;
+                    dataInfo.style.color = '#4CAF50';
+                    
+                    // 검색 인덱스 생성
+                    createSearchIndex();
+                    
+                    alert(`✅ Google Sheet에서 ${excelData.length}개 항목을 불러왔습니다!`);
+                    
+                } catch (error) {
+                    console.error('Google Sheet 파싱 오류:', error);
+                    dataInfo.textContent = '❌ 오류: ' + error.message;
+                    dataInfo.style.color = '#d32f2f';
+                    alert('❌ Google Sheet 로드 실패: ' + error.message);
+                } finally {
+                    // 콜백 함수 및 스크립트 태그 정리
+                    delete window[callbackName];
+                    const scriptTag = document.getElementById('googleSheetScript');
+                    if (scriptTag) scriptTag.remove();
+                }
+            };
+            
+            // 기존 스크립트 태그 제거
+            const oldScript = document.getElementById('googleSheetScript');
+            if (oldScript) oldScript.remove();
+            
+            // JSONP 요청을 위한 스크립트 태그 생성
+            const script = document.createElement('script');
+            script.id = 'googleSheetScript';
+            script.src = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?tqx=responseHandler:${callbackName}&sheet=${encodeURIComponent(GOOGLE_SHEET_NAME)}`;
+            
+            script.onerror = function() {
+                dataInfo.textContent = '❌ Google Sheet에 접근할 수 없습니다. 공유 설정을 확인하세요.';
+                dataInfo.style.color = '#d32f2f';
+                alert('❌ Google Sheet 로드 실패: 네트워크 오류 또는 접근 권한 문제');
+                delete window[callbackName];
+            };
+            
+            document.head.appendChild(script);
+        }
+
+        document.getElementById('matchRate').addEventListener('input', function(e) {
+            document.getElementById('matchRateValue').textContent = this.value + '%';
+        });
+
+        document.getElementById('textSearchInput').addEventListener('input', function(e) {
+            const searchText = e.target.value.trim().toLowerCase();
+            const searchResults = document.getElementById('searchResults');
+            
+            if (searchTimeout) {
+                clearTimeout(searchTimeout);
+            }
+
+            if (!searchText) {
+                searchResults.style.display = 'none';
+                return;
+            }
+
+            searchTimeout = setTimeout(() => {
+                performSearch(searchText);
+            }, 300);
+        });
+
+        function performSearch(searchText) {
+            if (!excelData) {
+                alert('Please select an Excel or CSV file first.');
+                return;
+            }
+
+            const searchResults = document.getElementById('searchResults');
+            searchResults.innerHTML = '';
+            let results = [];
+
+            for (let i = 0; i < excelData.length && results.length < 15; i++) {
+                const item = excelData[i];
+                const itemText = Object.values(item).join(' ').toLowerCase();
+                
+                if (itemText.includes(searchText)) {
+                    results.push(item);
+                }
+            }
+
+            if (results.length > 0) {
+                results.forEach(item => {
+                    const div = document.createElement('div');
+                    div.className = 'search-result-item';
+                    
+                    const itemNo = item.Item || item['아이템번호'] || item.item || item.ITEM;
+                    const barcode = item.Barcode || item['바코드'] || item.barcode || item.BARCODE;
+                    let displayText = `${itemNo} - ${barcode}`;
+                    
+                    displayText = displayText.replace(new RegExp(searchText, 'gi'), 
+                        match => `<span class="highlight">${match}</span>`);
+                    
+                    div.innerHTML = displayText;
+                    
+                    div.addEventListener('click', () => {
+                        currentItem = item;
+                        showQtyInput();
+                        searchResults.style.display = 'none';
+                        document.getElementById('textSearchInput').value = '';
+                    });
+                    
+                    searchResults.appendChild(div);
+                });
+                
+                searchResults.style.display = 'block';
+            } else {
+                searchResults.style.display = 'none';
+            }
+        }
+
+        function levenshteinDistance(a, b) {
+            if (a.length === 0) return b.length;
+            if (b.length === 0) return a.length;
+
+            const matrix = [];
+
+            for (let i = 0; i <= b.length; i++) {
+                matrix[i] = [i];
+            }
+
+            for (let j = 0; j <= a.length; j++) {
+                matrix[0][j] = j;
+            }
+
+            for (let i = 1; i <= b.length; i++) {
+                for (let j = 1; j <= a.length; j++) {
+                    if (b.charAt(i - 1) === a.charAt(j - 1)) {
+                        matrix[i][j] = matrix[i - 1][j - 1];
+                    } else {
+                        matrix[i][j] = Math.min(
+                            matrix[i - 1][j - 1] + 1,
+                            matrix[i][j - 1] + 1,
+                            matrix[i - 1][j] + 1
+                        );
+                    }
+                }
+            }
+
+            return matrix[b.length][a.length];
+        }
+
+        function calculateSimilarity(str1, str2) {
+            const maxLength = Math.max(str1.length, str2.length);
+            const distance = levenshteinDistance(str1, str2);
+            return ((maxLength - distance) / maxLength) * 100;
+        }
+
+        async function createSearchIndex() {
+            if (!excelData) return;
+            
+            window.barcodeIndex = new Map();
+            const chunkSize = 5000;
+            
+            const dataInfo = document.getElementById('dataInfo');
+            dataInfo.textContent = 'Creating search index...';
+            
+            for(let i = 0; i < excelData.length; i += chunkSize) {
+                const chunk = excelData.slice(i, i + chunkSize);
+                
+                chunk.forEach((row, localIndex) => {
+                    const possibleBarcodeFields = ['Barcode', '바코드', 'barcode', 'BARCODE'];
+                    let barcode = '';
+                    
+                    for (let field of possibleBarcodeFields) {
+                        if (row[field] !== undefined) {
+                            barcode = String(row[field]).trim();
+                            break;
+                        }
+                    }
+                    
+                    if (barcode) {
+                        window.barcodeIndex.set(barcode, i + localIndex);
+                    }
+                });
+                
+                dataInfo.textContent = `Creating search index... ${Math.min(100, Math.round((i / excelData.length) * 100))}%`;
+                await new Promise(resolve => setTimeout(resolve, 0));
+            }
+            
+            dataInfo.textContent = 'Search index created successfully';
+        }
+
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            const reader = new FileReader();
+            const dataInfo = document.getElementById('dataInfo');
+            dataInfo.textContent = 'Loading file...';
+
+            const fileExtension = file.name.split('.').pop().toLowerCase();
+
+            if (fileExtension === 'csv') {
+                reader.onload = async function(e) {
+                    try {
+                        const text = e.target.result;
+                        const rows = text.split('\n');
+                        const headers = rows[0].split(',').map(header => header.trim());
+                        
+                        const totalRows = rows.length - 1;
+                        excelData = new Array(totalRows);
+                        let processedRows = 0;
+                        
+                        const chunkSize = 5000;
+                        const updateInterval = Math.max(Math.floor(totalRows / 100), 1000);
+
+                        for(let i = 1; i < rows.length; i += chunkSize) {
+                            const chunk = rows.slice(i, Math.min(i + chunkSize, rows.length));
+                            
+                            for(let j = 0; j < chunk.length; j++) {
+                                const row = chunk[j];
+                                if (!row.trim()) continue;
+                                
+                                const values = row.split(',');
+                                const obj = {};
+                                headers.forEach((header, index) => {
+                                    if(values[index] !== undefined && values[index].trim() !== '') {
+                                        obj[header] = values[index].trim();
+                                    }
+                                });
+                                excelData[processedRows] = obj;
+                                processedRows++;
+                            }
+
+                            if(processedRows % updateInterval === 0) {
+                                dataInfo.textContent = `Processing... ${Math.min(100, Math.round((processedRows / totalRows) * 100))}%`;
+                                await new Promise(resolve => setTimeout(resolve, 0));
+                            }
+                        }
+
+                        excelData = excelData.filter(Boolean);
+                        
+                        dataInfo.textContent = `Loaded ${excelData.length} items. Columns: ${headers.join(', ')}`;
+                        alert(`File loaded successfully. ${excelData.length} items found.`);
+                        
+                        await createSearchIndex();
+
+                    } catch (error) {
+                        dataInfo.textContent = 'Error loading file: ' + error.message;
+                        alert('Error loading file: ' + error.message);
+                    }
+                };
+                reader.readAsText(file);
+
+            } else {
+                reader.onload = async function(e) {
+                    try {
+                        const data = new Uint8Array(e.target.result);
+                        dataInfo.textContent = 'Processing data...';
+                        
+                        const workbook = XLSX.read(data, {
+                            type: 'array',
+                            cellDates: false,
+                            cellNF: false,
+                            cellText: false
+                        });
+                        const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                        
+                        const chunkSize = 5000;
+                        const rawData = XLSX.utils.sheet_to_json(firstSheet, {
+                            header: 1,
+                            defval: '',
+                            raw: true
+                        });
+                        const headers = rawData[0];
+                        
+                        const totalRows = rawData.length - 1;
+                        excelData = new Array(totalRows);
+                        let processedRows = 0;
+                        
+                        const updateInterval = Math.max(Math.floor(totalRows / 100), 1000);
+                        
+                        for(let i = 1; i < rawData.length; i += chunkSize) {
+                            const chunk = rawData.slice(i, Math.min(i + chunkSize, rawData.length));
+                            
+                            for(let j = 0; j < chunk.length; j++) {
+                                const row = chunk[j];
+                                const obj = {};
+                                for(let k = 0; k < headers.length; k++) {
+                                    if(row[k] !== '') {
+                                        obj[headers[k]] = row[k];
+                                    }
+                                }
+                                excelData[processedRows] = obj;
+                                processedRows++;
+                            }
+                            
+                            if(processedRows % updateInterval === 0) {
+                                dataInfo.textContent = `Processing... ${Math.min(100, Math.round((processedRows / totalRows) * 100))}%`;
+                                await new Promise(resolve => setTimeout(resolve, 0));
+                            }
+                        }
+                        
+                        excelData = excelData.filter(Boolean);
+                        
+                        dataInfo.textContent = `Loaded ${excelData.length} items. Columns: ${headers.join(', ')}`;
+                        alert(`File loaded successfully. ${excelData.length} items found.`);
+                        
+                        await createSearchIndex();
+                        
+                    } catch (error) {
+                        dataInfo.textContent = 'Error loading file: ' + error.message;
+                        alert('Error loading file: ' + error.message);
+                    }
+                };
+                reader.readAsArrayBuffer(file);
+            }
+        });
+
+        document.getElementById('barcodeInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                searchBarcode();
+            }
+        });
+
+        document.getElementById('qtyValue').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                confirmQty();
+            }
+        });
+
+        document.getElementById('qtyValue').addEventListener('click', function(e) {
+            this.select();
+        });
+
+        function searchBarcode() {
+            if (!excelData || !window.barcodeIndex) {
+                alert('Please select an Excel or CSV file first.');
+                return;
+            }
+
+            const barcodeInput = document.getElementById('barcodeInput');
+            const barcode = barcodeInput.value.trim();
+            const requiredMatchRate = parseInt(document.getElementById('matchRate').value);
+            
+            if (!barcode) return;
+
+            if (window.scannedBarcodes.has(barcode)) {
+                const div = document.createElement('div');
+                div.className = 'result-item warning warning-icon';
+                div.textContent = `Barcode ${barcode} already scanned!`;
+                document.getElementById('results').appendChild(div);
+                
+                setTimeout(() => {
+                    div.classList.add('fade-out');
+                    setTimeout(() => div.remove(), 2000);
+                }, 2000);
+
+                barcodeInput.value = '';
+                barcodeInput.focus();
+                return;
+            }
+
+            let found = false;
+            let bestMatch = null;
+            let bestMatchSimilarity = 0;
+
+            const exactMatch = window.barcodeIndex.get(barcode);
+            if (exactMatch !== undefined) {
+                currentItem = excelData[exactMatch];
+                found = true;
+                window.scannedBarcodes.add(barcode);
+                showQtyInput();
+            } else {
+                window.barcodeIndex.forEach((index, storedBarcode) => {
+                    const similarity = calculateSimilarity(barcode, storedBarcode);
+                    if (similarity >= requiredMatchRate && similarity > bestMatchSimilarity) {
+                        bestMatch = index;
+                        bestMatchSimilarity = similarity;
+                    }
+                });
+
+                if (bestMatch !== null) {
+                    currentItem = excelData[bestMatch];
+                    found = true;
+                    window.scannedBarcodes.add(barcode);
+                    
+                    const div = document.createElement('div');
+                    div.className = 'result-item';
+                    div.style.color = '#2196F3';
+                    div.textContent = `Match found with ${bestMatchSimilarity.toFixed(1)}% similarity`;
+                    document.getElementById('results').appendChild(div);
+                    
+                    setTimeout(() => {
+                        div.classList.add('fade-out');
+                        setTimeout(() => div.remove(), 2000);
+                    }, 2000);
+
+                    showQtyInput();
+                }
+            }
+
+            if (!found) {
+                const div = document.createElement('div');
+                div.className = 'result-item warning warning-icon';
+                div.textContent = `Barcode ${barcode} not found.`;
+                document.getElementById('results').appendChild(div);
+                
+                setTimeout(() => {
+                    div.classList.add('fade-out');
+                    setTimeout(() => div.remove(), 2000);
+                }, 2000);
+            }
+
+            barcodeInput.value = '';
+            barcodeInput.focus();
+        }
+
+        function showQtyInput() {
+            const qtyInput = document.getElementById('qtyInput');
+            const qtyValue = document.getElementById('qtyValue');
+            
+            qtyInput.classList.add('show');
+            qtyValue.value = '';
+            
+            setTimeout(() => {
+                qtyValue.focus();
+            }, 50);
+        }
+
+        function confirmQty() {
+            const qty = document.getElementById('qtyValue').value;
+            if (qty && currentItem) {
+                const itemNo = currentItem.Item || currentItem['아이템번호'] || currentItem.item || currentItem.ITEM;
+                addResult(itemNo, qty);
+                document.getElementById('qtyInput').classList.remove('show');
+                document.getElementById('qtyValue').value = '';
+                document.getElementById('barcodeInput').focus();
+                currentItem = null;
+            }
+        }
+
+        function addResultToDOM(itemNo, qty, barcode) {
+            const totalResults = document.getElementById('totalResults');
+            const div = document.createElement('div');
+            div.className = 'result-item';
+
+            // Store data in attributes
+            div.dataset.itemno = itemNo;
+            div.dataset.qty = qty;
+            if (barcode) {
+                div.dataset.barcode = barcode;
+            }
+
+            // Create span for text content
+            const textSpan = document.createElement('span');
+            textSpan.textContent = `${itemNo} - ${qty}`;
+            div.appendChild(textSpan);
+
+            // Create container for buttons
+            const buttonContainer = document.createElement('div');
+
+            // Create Edit button
+            const editButton = document.createElement('button');
+            editButton.textContent = 'Edit';
+            editButton.className = 'edit-btn';
+            editButton.onclick = function() { editResult(this); };
+            buttonContainer.appendChild(editButton);
+
+            // Create Delete button
+            const deleteButton = document.createElement('button');
+            deleteButton.textContent = 'Delete';
+            deleteButton.className = 'delete-btn';
+            deleteButton.onclick = function() { deleteResult(this); };
+            buttonContainer.appendChild(deleteButton);
+
+            div.appendChild(buttonContainer);
+
+            const headerRow = totalResults.querySelector('.header-row');
+
+            // Insert after the header row, or as the first child if header doesn't exist (fallback)
+            if (headerRow && headerRow.nextSibling) {
+                totalResults.insertBefore(div, headerRow.nextSibling);
+            } else if (headerRow) {
+                totalResults.appendChild(div); // Append if only header exists
+            }
+             else {
+                totalResults.prepend(div); // Prepend if no header found
+            }
+
+            // Use setTimeout to ensure scrolling happens after DOM update
+            setTimeout(() => {
+                 //totalResults.scrollTop = totalResults.scrollHeight; // Scroll to bottom (old)
+                 totalResults.scrollTop = 0; // Scroll to top
+            }, 0); // 0ms delay often works, can increase slightly if needed
+        }
+
+        function addResult(itemNo, qty) {
+             // Get barcode from currentItem if available
+             const barcode = currentItem ? (currentItem.Barcode || currentItem['바코드'] || currentItem.barcode || currentItem.BARCODE) : null;
+             addResultToDOM(itemNo, qty, barcode);
+        }
+
+        function editResult(buttonElement) {
+            const resultItemDiv = buttonElement.closest('.result-item');
+            const textSpan = resultItemDiv.querySelector('span');
+            const currentItemNo = resultItemDiv.dataset.itemno;
+            const currentQty = resultItemDiv.dataset.qty;
+
+            const newItemNo = prompt(`Edit Item Number:`, currentItemNo);
+            if (newItemNo === null || newItemNo.trim() === "") return; // Handle cancel or empty input
+
+            const newQty = prompt(`Edit Quantity for ${newItemNo}:`, currentQty);
+            if (newQty === null || isNaN(parseInt(newQty)) || parseInt(newQty) <= 0) return; // Handle cancel or invalid input
+
+            const finalQty = parseInt(newQty);
+
+            // Update data attributes and text content
+            resultItemDiv.dataset.itemno = newItemNo.trim();
+            resultItemDiv.dataset.qty = finalQty;
+            textSpan.textContent = `${newItemNo.trim()} - ${finalQty}`;
+
+            // Optional: Add visual feedback
+             resultItemDiv.style.backgroundColor = '#e8f4e8'; // Light green flash
+             setTimeout(() => { resultItemDiv.style.backgroundColor = ''; }, 500);
+        }
+
+        function deleteResult(buttonElement) {
+             const resultItemDiv = buttonElement.closest('.result-item');
+             const barcode = resultItemDiv.dataset.barcode;
+
+             if (barcode && window.scannedBarcodes.has(barcode)) {
+                 window.scannedBarcodes.delete(barcode);
+                 console.log(`Barcode ${barcode} removed from scanned list.`);
+             } else if (barcode) {
+                 // Barcode might exist from text load, try removing variations if needed
+                 // Or handle cases where barcode might not be perfectly matching
+                 console.log(`Attempting to remove barcode ${barcode} which might not be in the active set.`);
+                 window.scannedBarcodes.delete(barcode); // Attempt removal anyway
+             }
+
+             resultItemDiv.remove();
+        }
+
+        function clearResults() {
+            const totalResults = document.getElementById('totalResults');
+            // Remove only result items, keeping the header
+            const resultItems = totalResults.querySelectorAll('.result-item');
+            resultItems.forEach(item => item.remove());
+
+            document.getElementById('results').innerHTML = ''; // Clear immediate feedback area
+            if (window.scannedBarcodes) {
+                 window.scannedBarcodes.clear(); // Clear the set of scanned barcodes
+            }
+            document.getElementById('barcodeInput').focus();
+        }
+
+        function showSaveDialog() {
+            const totalResults = document.getElementById('totalResults');
+            const resultItems = totalResults.querySelectorAll('.result-item'); // Select only result items
+
+            if (resultItems.length === 0) { // Check if there are any items to save
+                const div = document.createElement('div');
+                div.className = 'result-item warning warning-icon'; // Use appropriate class
+                div.textContent = `No results to save!`;
+                div.style.justifyContent = 'center'; // Center text
+                document.getElementById('results').appendChild(div);
+
+                setTimeout(() => {
+                    div.classList.add('fade-out');
+                    setTimeout(() => div.remove(), 2000);
+                }, 2000);
+                return;
+            }
+
+            const now = new Date();
+            const dateStr = now.toISOString().slice(0,19).replace(/[:]/g, '-');
+            document.getElementById('fileName').value = `scan_results_${dateStr}`;
+            document.getElementById('saveDialog').classList.add('show');
+        }
+
+        function saveResults() {
+            const fileName = document.getElementById('fileName').value.trim() || 'scan_results';
+            const totalResults = document.getElementById('totalResults');
+            const resultItems = totalResults.querySelectorAll('.result-item'); // Select only result items
+
+            // Extract data from data attributes
+            const results = Array.from(resultItems)
+                .map(element => `${element.dataset.itemno} - ${element.dataset.qty}`)
+                .join('\n');
+
+            if (!results) {
+                // Show warning if there's nothing to save (double check, though showSaveDialog should prevent this)
+                 const div = document.createElement('div');
+                 div.className = 'result-item warning warning-icon';
+                 div.textContent = `No results to save!`;
+                 div.style.justifyContent = 'center';
+                 document.getElementById('results').appendChild(div);
+                 setTimeout(() => {
+                     div.classList.add('fade-out');
+                     setTimeout(() => div.remove(), 2000);
+                 }, 2000);
+                return; // Stop saving if somehow no results
+            }
+
+            const header = "ITEM - QTY\n";
+            const content = header + results;
+
+            const blob = new Blob([content], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${fileName}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+
+            document.getElementById('saveDialog').classList.remove('show');
+
+            // Show success message
+             const div = document.createElement('div');
+             div.className = 'result-item';
+             div.style.color = '#4CAF50';
+             div.style.justifyContent = 'center';
+             div.textContent = `Results saved to ${fileName}.txt`;
+             document.getElementById('results').appendChild(div);
+             setTimeout(() => {
+                 div.classList.add('fade-out');
+                 setTimeout(() => div.remove(), 2000);
+             }, 2000);
+        }
+
+        function loadTextFile() {
+            document.getElementById('textFileInput').click();
+        }
+
+        document.getElementById('textFileInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const content = e.target.result;
+                const lines = content.split('\n');
+
+                if (lines[0].trim().toUpperCase() === "ITEM - QTY") {
+                    lines.shift(); // Remove header if present
+                }
+
+                clearResults(); // Clear existing results before loading
+
+                lines.forEach(line => {
+                    line = line.trim();
+                    if (line) {
+                        // Try to parse item and quantity
+                        const parts = line.split(' - ');
+                        let itemNo = line; // Default to full line if split fails
+                        let qty = 1; // Default quantity
+
+                        if (parts.length > 1) {
+                            const potentialQty = parseInt(parts[parts.length - 1].trim());
+                            if (!isNaN(potentialQty)) {
+                                qty = potentialQty;
+                                itemNo = parts.slice(0, -1).join(' - ').trim();
+                            }
+                        }
+                        // Add result without a barcode, as it's from a text file
+                        addResultToDOM(itemNo, qty, null);
+                    }
+                });
+                // Add loaded items' potential "barcodes" (itemNo in this case) to scanned set to prevent duplicates?
+                // This might be complex if itemNo isn't the barcode. For now, loaded items won't affect barcode scanning checks.
+
+                // Show loaded message
+                const div = document.createElement('div');
+                div.className = 'result-item';
+                div.style.color = '#4CAF50';
+                 div.style.justifyContent = 'center';
+                div.textContent = `Loaded results from ${file.name}`;
+                document.getElementById('results').appendChild(div);
+
+                setTimeout(() => {
+                    div.classList.add('fade-out');
+                    setTimeout(() => div.remove(), 2000);
+                }, 2000);
+            };
+            reader.readAsText(file);
+            this.value = ''; // Reset file input
+        });
+        // 터치 이벤트 최적화
+    document.addEventListener('touchstart', function() {}, {passive: true});
+
+// 바코드 입력 필드 자동 포커스 방지 (모바일에서)
+const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+if (isMobile) {
+    document.getElementById('barcodeInput').addEventListener('focus', function(e) {
+        e.target.setAttribute('readonly', 'readonly');
+        setTimeout(function() {
+            e.target.removeAttribute('readonly');
+        }, 50);
+    });
+}
+ // 더블탭 줌 방지
+ let lastTouchEnd = 0;
+    document.addEventListener('touchend', function(e) {
+        const now = Date.now();
+        if (now - lastTouchEnd < 300) {
+            e.preventDefault();
+        }
+        lastTouchEnd = now;
+    }, false);
+
+    // 모바일 키보드 처리
+    document.getElementById('barcodeInput').addEventListener('blur', function() {
+        window.scrollTo(0, 0);
+    });
+
+    // 새로고침 방지 기능 추가
+    window.addEventListener('beforeunload', function(e) {
+        const totalResults = document.getElementById('totalResults');
+        const resultItems = totalResults.getElementsByClassName('result-item');
+        
+        if (resultItems.length > 0) {
+            e.preventDefault();
+            e.returnValue = '⚠️ 저장되지 않은 스캔 결과가 있습니다. 정말로 페이지를 새로고침하시겠습니까?';
+            return e.returnValue;
+        }
+    });
+
+    </script>
+</body>
+</html>
