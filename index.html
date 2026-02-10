@@ -8,6 +8,8 @@
 
     <title>Amor Barcode System</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <!-- 바코드 스캔용 ZXing 라이브러리 -->
+    <script src="https://unpkg.com/@zxing/library@0.20.0"></script>
     <style>
         * {
             margin: 0;
@@ -367,6 +369,48 @@
             margin-top: 10px;
         }
 
+        /* 카메라 스캔 오버레이 */
+        #cameraOverlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1100;
+        }
+
+        .camera-container {
+            background: #000;
+            border-radius: 16px;
+            overflow: hidden;
+            width: 100%;
+            max-width: 420px;
+            aspect-ratio: 9 / 16;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #cameraVideo {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            flex: 1;
+        }
+
+        .camera-actions {
+            padding: 10px;
+            display: flex;
+            gap: 10px;
+            background: #111;
+        }
+
+        .camera-actions button {
+            flex: 1;
+            padding: 10px;
+            font-size: 14px;
+        }
+
         /* 모바일 반응형 */
         @media screen and (max-width: 768px) {
             body {
@@ -598,7 +642,7 @@ if ('serviceWorker' in navigator) {
             <div id="dataInfo" class="debug-info"></div>
         </div>
 
-        <div class="settings-section">
+        <div class="settings-section" style="display: none;">
             <label for="matchRate">🎯 Match Rate:</label>
             <input type="range" id="matchRate" min="70" max="100" value="100" step="1">
             <span id="matchRateValue">100%</span>
@@ -611,6 +655,7 @@ if ('serviceWorker' in navigator) {
         
         <div class="button-row">
             <button onclick="searchBarcode()">🔍 Search</button>
+            <button onclick="startCameraScan()">📷 카메라 스캔</button>
             <button class="clear-button" onclick="clearResults()">🗑️ Clear</button>
         </div>
         
@@ -638,11 +683,23 @@ if ('serviceWorker' in navigator) {
         <button onclick="document.getElementById('saveDialog').classList.remove('show')">Cancel</button>
     </div>
 
+    <!-- 휴대폰 카메라 바코드 스캔 오버레이 -->
+    <div id="cameraOverlay">
+        <div class="camera-container">
+            <video id="cameraVideo" autoplay playsinline></video>
+            <div class="camera-actions">
+                <button onclick="stopCameraScan()">닫기</button>
+            </div>
+        </div>
+    </div>
+
     <input type="file" id="textFileInput" accept=".txt" style="display: none;">
     <script>
         let excelData = null;
         let currentItem = null;
         let searchTimeout = null;
+        let codeReader = null;
+        let currentVideoInputDeviceId = null;
         
         // Google Sheet ID (AMOR DATA-FIXED)
         const GOOGLE_SHEET_ID = '1H1dx7ClreBrP9Mq0kHIvmgLwewU1Wgh2Z0WL8RKV7JE';
@@ -1374,6 +1431,75 @@ if ('serviceWorker' in navigator) {
             reader.readAsText(file);
             this.value = ''; // Reset file input
         });
+
+        // ==============================
+        // 휴대폰 카메라 바코드 스캔 기능
+        // ==============================
+        async function startCameraScan() {
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                alert('이 기기에서는 카메라 사용을 지원하지 않습니다.');
+                return;
+            }
+
+            const overlay = document.getElementById('cameraOverlay');
+            const videoElement = document.getElementById('cameraVideo');
+
+            overlay.style.display = 'flex';
+
+            try {
+                if (!codeReader) {
+                    codeReader = new ZXing.BrowserMultiFormatReader();
+                } else {
+                    codeReader.reset();
+                }
+
+                const devices = await codeReader.listVideoInputDevices();
+                if (!devices || devices.length === 0) {
+                    alert('사용 가능한 카메라를 찾을 수 없습니다.');
+                    overlay.style.display = 'none';
+                    return;
+                }
+
+                // 모바일에서는 보통 후면 카메라를 사용
+                const backCamera = devices.find(d => /back|rear|후면/i.test(d.label)) || devices[devices.length - 1];
+                currentVideoInputDeviceId = backCamera.deviceId;
+
+                await codeReader.decodeFromVideoDevice(
+                    currentVideoInputDeviceId,
+                    videoElement,
+                    (result, err) => {
+                        if (result) {
+                            const text = result.getText ? result.getText() : result.text;
+                            // 스캔된 바코드를 입력창에 넣고 기존 검색 로직 실행
+                            const barcodeInput = document.getElementById('barcodeInput');
+                            barcodeInput.value = text;
+                            stopCameraScan();
+                            searchBarcode();
+                        }
+                    }
+                );
+            } catch (error) {
+                console.error('카메라 스캔 오류:', error);
+                alert('카메라를 시작하는 중 오류가 발생했습니다: ' + error.message);
+                overlay.style.display = 'none';
+                if (codeReader) {
+                    codeReader.reset();
+                }
+            }
+        }
+
+        function stopCameraScan() {
+            const overlay = document.getElementById('cameraOverlay');
+            overlay.style.display = 'none';
+
+            if (codeReader) {
+                try {
+                    codeReader.reset();
+                } catch (e) {
+                    console.error('카메라 종료 오류:', e);
+                }
+            }
+        }
         // 터치 이벤트 최적화
     document.addEventListener('touchstart', function() {}, {passive: true});
 
